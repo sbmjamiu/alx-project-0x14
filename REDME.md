@@ -1,126 +1,151 @@
 # API Explorer: Mastering RESTful Connections
 
-## Project Description
+## API Overview
 
-CineSeek is a modern movie discovery application built with **Next.js**, **TypeScript**, and **Tailwind CSS**. Users can browse movies from the MoviesDatabase API, view details, and search by year or genre. The project emphasizes responsive design, clean architecture, and robust API integration.
+The MoviesDatabase API provides access to a wide range of movie data, including titles, genres, release years, and detailed information for each film. It supports filtering by year and genre, as well as pagination for efficient data retrieval. Authentication is handled via API keys, ensuring secure access. The API is designed for reliability, with clear error responses and support for scalable, real-time movie discovery applications.
 
----
+## Version
 
-## Learning Objectives
+Current API Version: v1
 
-- Understand API documentation and integration
-- Implement TypeScript interfaces for API responses
-- Create reusable React components
-- Build responsive layouts with Tailwind CSS
-- Manage state for filtering and pagination
-- Handle errors and loading states effectively
-- Set up Next.js API routes for server-side data fetching
-- Manage environment variables for API keys
+## Available Endpoints
 
----
+- **/titles**  
+   Retrieve a list of movies. Supports filtering by year, genre, and pagination.
 
-## Requirements
+- **/titles/{id}**  
+   Get detailed information about a specific movie by its unique ID.
 
-### Technical Stack
+- **/titles/search/title/{title}**  
+   Search for movies by title keyword.
 
-- Next.js 14 (Pages Router)
-- TypeScript
-- Tailwind CSS
-- Font Awesome icons
-- MoviesDatabase API
+- **/titles/utils/genres**  
+   Fetch a list of all available movie genres.
 
-### Development Requirements
+- **/titles/utils/languages**  
+   Retrieve supported languages for movie data.
 
-- Node.js (v16 or higher)
-- npm or yarn
-- Git
+- **/titles/utils/countries**  
+   Get a list of countries associated with movies.
 
----
+- **/titles/random**  
+   Fetch a random movie from the database.
 
-## File Structure
+## Request and Response Format
+
+### Request Example
+
+To fetch a list of movies filtered by year and genre, send a GET request to the `/titles` endpoint with query parameters:
 
 ```
-alx-movie-app/
-├── components/
-│   ├── commons/
-│   │   ├── Button.tsx
-│   │   ├── Loading.tsx
-│   │   └── MovieCard.tsx
-│   └── layouts/
-│       ├── Footer.tsx
-│       ├── Header.tsx
-│       └── Layout.tsx
-├── interfaces/
-│   └── index.ts
-├── pages/
-│   ├── api/
-│   │   └── fetch-movies.ts
-│   ├── movies/
-│   │   └── index.tsx
-│   ├── _app.tsx
-│   └── index.tsx
-├── public/
-├── styles/
-│   └── globals.css
-├── .env.local
-├── .eslintrc.json
-├── .gitignore
-├── next.config.js
-├── package.json
-└── tsconfig.json
+GET /titles?year=2023&genre=Action&page=1
+Headers:
+    Authorization: Bearer YOUR_API_KEY
 ```
 
----
+### Response Example
 
-## Best Practices
+A successful response returns a JSON object containing movie data and pagination info:
 
-### Code Quality
+```json
+{
+  "results": [
+    {
+      "id": "tt1234567",
+      "title": "Action Movie",
+      "year": 2023,
+      "genres": ["Action", "Adventure"],
+      "language": "English",
+      "country": "USA",
+      "summary": "An action-packed adventure.",
+      "posterUrl": "https://example.com/poster.jpg"
+    }
+    // ...more movies
+  ],
+  "page": 1,
+  "totalPages": 10,
+  "totalResults": 100
+}
+```
 
-- Use TypeScript interfaces for all props and API responses
-- Component-based architecture with clear separation of concerns
-- Proper error handling in API requests
-- Loading states for better UX
-- Store sensitive data in environment variables
+### Error Response Example
 
-### Performance
+If an invalid API key is provided, the API returns an error object:
 
-- Client-side navigation with Next.js router
-- Efficient API calls with pagination
-- Responsive design with Tailwind CSS
-- Image optimization using Next.js Image component
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid API key provided.",
+  "status": 401
+}
+```
 
-### Maintainability
+## Authentication
 
-- Consistent code formatting
-- Clear folder structure
-- Reusable components
-- Comprehensive prop typing
-- Proper documentation in README
+To access the MoviesDatabase API, you must include a valid API key in the `Authorization` header of each request. The API key should be provided as a Bearer token. Example:
 
----
+```
+Authorization: Bearer YOUR_API_KEY
+```
 
-## API Integration
+Requests without a valid API key will receive a `401 Unauthorized` error. Always keep your API key secure and never expose it in client-side code. For best security, store your API key in environment variables and use server-side API routes to proxy requests.
 
-**Endpoints:**
+## Error Handling
 
-- `/titles`: Fetch movie data, filter by year/genre, supports pagination
+When working with the MoviesDatabase API, you may encounter various error responses. Common errors include:
 
-**Authentication:**
+- **401 Unauthorized**: Returned when the API key is missing or invalid.  
+   _Handling_: Check that the `Authorization` header contains a valid API key. Prompt users to re-authenticate or display an error message.
 
-- API key via headers
-- Store API key in environment variables
-- Use server-side API route to protect keys
+- **400 Bad Request**: Indicates invalid query parameters or malformed requests.  
+   _Handling_: Validate all request parameters before sending. Display user-friendly messages for invalid input.
 
-**Error Handling:**
+- **404 Not Found**: The requested resource does not exist.  
+   _Handling_: Show a "Not Found" message or fallback UI if a movie or endpoint is unavailable.
 
-- Loading component for pending states
-- Try/catch in API routes
-- Status code checks
-- Type guards for API data
+- **429 Too Many Requests**: Triggered when exceeding API rate limits.  
+   _Handling_: Implement request throttling or exponential backoff. Inform users to try again later.
 
-**Usage Limits:**
+- **500 Internal Server Error**: Server-side issues.  
+   _Handling_: Display a generic error message and optionally log the error for debugging.
 
-- Consider API rate limits
-- Use pagination to limit request size
-- Client-side caching where appropriate
-- Error boundaries for graceful failure
+**Best Practices:**
+
+- Use `try/catch` blocks in API calls to capture and handle errors gracefully.
+- Check response status codes and display appropriate feedback.
+- Implement loading and error states in your UI components.
+- Use type guards to ensure API data integrity before rendering.
+
+Example error handling in TypeScript:
+
+```ts
+try {
+  const res = await fetch("/api/fetch-movies");
+  if (!res.ok) {
+    throw new Error(`Error: ${res.status}`);
+  }
+  const data = await res.json();
+  // process data
+} catch (error) {
+  // Display error message to user
+}
+```
+
+## Usage Limits and Best Practices
+
+### Usage Limitations
+
+- **Rate Limits:** The MoviesDatabase API enforces rate limits to ensure fair usage and system stability. Exceeding these limits will result in a `429 Too Many Requests` error. Refer to the API provider's documentation for specific rate thresholds.
+- **Request Size:** Large queries or excessive pagination may be restricted. Use pagination parameters to limit the number of results per request.
+- **Authentication:** Each request must include a valid API key. Unauthorized or excessive requests may lead to temporary suspension of access.
+
+### Recommendations
+
+- **Efficient Pagination:** Always use pagination to avoid large payloads and reduce server load.
+- **Error Handling:** Implement robust error handling for rate limits and other common errors. Use exponential backoff or retry strategies when encountering `429` errors.
+- **Caching:** Cache frequent or repeated requests on the client or server to minimize redundant API calls and improve performance.
+- **Environment Variables:** Store API keys securely in environment variables and never expose them in client-side code.
+- **Monitoring:** Track API usage and error rates to proactively address issues and stay within usage limits.
+- **Documentation:** Regularly review API documentation for updates on limits, endpoints, and best practices.
+
+By following these guidelines, you can ensure reliable, secure, and efficient integration with the MoviesDatabase API.
